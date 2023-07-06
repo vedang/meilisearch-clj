@@ -51,25 +51,20 @@ Say goodbye to server deployment and manual updates with [Meilisearch Cloud](htt
 
 ## 🔧 Installation
 
-`meilisearch-clj` is not currently available from Clojars. My plan is to upload it to Clojars once it has a small amount of functionality built-in. The versioning scheme will follow the `meilisearch-java` versioning scheme, with a `-alpha<version>` added to the end until sufficient functionality coverage is achieved. To be able to use this package right now, declare it as a dependency in your project:
+`meilisearch-clj` is not currently available from Clojars / Maven. To be able to use this package right now, declare it as a git dependency in your deps file (as shown below). At this point, the library is already useful for all basic usage, and for more complex usage the user can drop down to the Java SDK.
 
-### Maven <!-- omit in toc -->
+I will flesh out more of the library as and when time permits, and I will upload it to Maven once I have met the criteria outlined in the [Meilisearch Integration Guide](https://github.com/meilisearch/integration-guides/blob/main/resources/build-integration.md)
 
-Currently unavailable
-<!-- Add the following code to the `<dependencies>` section of your project: -->
 
-<!-- ```xml -->
-<!-- <dependency> -->
-<!--   <groupId>com.meilisearch.sdk</groupId> -->
-<!--   <artifactId>meilisearch-clj</artifactId> -->
-<!--   <version>0.11.1-alpha1</version> -->
-<!--   <type>pom</type> -->
-<!-- </dependency> -->
-<!-- ``` -->
+The versioning scheme will follow the `meilisearch-java` versioning scheme, perhaps with a `-alpha<version>` added to the end until sufficient functionality coverage is achieved.
+
+### Maven / Clojars <!-- omit in toc -->
+
+Currently unavailable, as explained above
 
 ### Deps.edn
 ```clojure
-io.github.vedang/meilisearch-clj {:git/sha "TBD"}
+io.github.vedang/meilisearch-clj {:git/sha "f9bafc4804b3be81367ffd12ab3b7d1ec7d79bf7"}
 ```
 
 ### Run Meilisearch <!-- omit in toc -->
