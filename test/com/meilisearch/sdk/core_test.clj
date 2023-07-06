@@ -77,10 +77,36 @@
    {:id 5 :title "Moana" :genres ["Action" "Fantasy"]}
    {:id 6 :title "Philadelphia" :genres ["Drama"]}])
 
-(t/deftest add-documents!
+(t/deftest add-documents-and-search!
   (let [_create-index (core/create-index! client "test_movies_1" "id")
-        index (core/index client "test_movies_1")]
-    (t/is (-> index
-              (core/add-documents! documents)
+        index (core/index client "test_movies_1")
+        task (core/add-documents! index documents)]
+    (t/is (-> task
               (select-keys [:type :status :index-uid])
-              (= {:type "documentAdditionOrUpdate" :status "enqueued" :index-uid (.getUid index)})))))
+              (= {:type "documentAdditionOrUpdate"
+                  :status "enqueued"
+                  :index-uid (.getUid index)}))
+          "We can add documents to the index")
+
+    ;; Wait for the task to complete
+    (loop [num-attempts 5]
+      (let [task (core/get-task client (:task-uid task))]
+        (when (not= "succeeded" (:status task))
+          (if (pos? num-attempts)
+            (do (Thread/sleep 500)
+                (recur (dec num-attempts)))
+            (do (println "Exhausted attempts, something is wrong with our server")
+                (println task))))))
+
+    (t/is (-> index
+              (core/search "life")
+              (= {:hits '({:genres ["Drama" "Adventure"],
+                           :id 3.0,
+                           :title "Life of Pi"}),
+                  :facet-distribution nil,
+                  :processing-time-ms 0,
+                  :query "life",
+                  :offset 0,
+                  :limit 20,
+                  :estimated-total-hits 1}))
+          "Once the documents are added, we can search for them")))

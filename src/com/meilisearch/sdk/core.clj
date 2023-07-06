@@ -108,3 +108,17 @@
                   (if (instance? String documents)
                     documents
                     (json/write-value-as-string documents)))))
+
+(defn search
+  "Searches documents in the index Refer
+  https://www.meilisearch.com/docs/reference/api/search#search-in-an-index-with-post
+
+  Params:
+  * index - Required, the Index object against which to run the search
+  * query - Required, Query string
+
+  Returns:
+  * Meilisearch API response
+  * throws MeilisearchException if an error occurs"
+  [^Index index ^String query]
+  (impl/->search-result (.search index query)))

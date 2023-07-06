@@ -153,20 +153,19 @@ Continuing on from previous example, let's formalize things a bit and see the st
 
 A basic search can be performed by calling the `search` method, with a simple string query.
 
-```java
-import com.meilisearch.sdk.model.SearchResult;
+```clojure
+;; Continuing from previous code blocks
 
-// Meilisearch is typo-tolerant:
-SearchResult results = index.search("carlo");
-System.out.println(results);
+(def index "The Movies Index against which we want to execute a search"
+  (core/index client "movies"))
+
+;; Meilisearch is typo-tolerant:
+(core/search index "carlo")
+;; := {:hits ({:title "Carlos" ...}, {:title "Carol" ...} ...)
+;;     :processing-time-ms ... }
 ```
 
-- Output:
-
-```
-SearchResult(hits=[{id=1.0, title=Carol, genres:[Romance, Drama]}], offset=0, limit=20, estimatedTotalHits=1, facetDistribution=null, processingTimeMs=3, query=carlo)
-```
-
+REST OF THIS DOC IS TBD IN Clojure
 #### Custom Search <!-- omit in toc -->
 
 If you want a custom search, the easiest way is to create a `SearchRequest` object, and set the parameters that you need.<br>

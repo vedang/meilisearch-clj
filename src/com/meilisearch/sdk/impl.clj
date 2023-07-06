@@ -1,9 +1,11 @@
 (ns com.meilisearch.sdk.impl
+  (:require
+   [clojure.walk :as walk])
   (:import
    (com.meilisearch.sdk Config)
-   (com.meilisearch.sdk.model Task TaskInfo)))
+   (com.meilisearch.sdk.model SearchResult Task TaskInfo)))
 
-;;; # Functions that operation on a `Config` object
+;;; # Functions that operate on a `Config` object
 
 (defn config
   "Takes a configuration map and returns a `Config` object that can be
@@ -19,7 +21,7 @@
   [configuration]
   (Config. (:host configuration) (:api-key configuration)))
 
-;;; # Functions that operation on a `Task`, `TaskInfo` object
+;;; # Functions that operate on a `Task`, `TaskInfo` object
 
 (defn ->task-info
   "Converts Task information to a hash-map for ease of use. Takes:
@@ -52,3 +54,27 @@
      :error (.getError task-info)
      ;; @TODO: Implement a similar reader for TaskDetails.
      :details (.getDetails task-info)}))
+
+;;; Functions that operate on a `Searchable` object (`SearchResult`)
+
+(defn ->hits
+  "Converts Hits `ArrayList<HashMap<String, Object>>` to a Clojure
+  friendly array for ease of use. Takes:
+
+  * a Hits Object, as retured by a `.getHits` operation on a `SearchResult`"
+  [hits]
+  (map (comp walk/keywordize-keys (partial into {})) hits))
+
+(defn ->search-result
+  "Converts a `SearchResult` object to a Clojure friendly hash-map for
+  ease of use. Takes:
+
+  * a `SearchResult`, as returned by the `.search` function on an `Index`"
+  [^SearchResult result]
+  {:hits (->hits (.getHits result))
+   :facet-distribution (.getFacetDistribution result)
+   :processing-time-ms (.getProcessingTimeMs result)
+   :query (.getQuery result)
+   :offset (.getOffset result)
+   :limit (.getLimit result)
+   :estimated-total-hits (.getEstimatedTotalHits result)})
