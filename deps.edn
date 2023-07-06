@@ -17,8 +17,10 @@
    :ns-default build}
 
   :cider ;; Tooling dependencies
-  {:extra-deps {nrepl/nrepl {:mvn/version "1.0.0"}
-                cider/cider-nrepl {:mvn/version "0.30.0"}
+  {:extra-deps {cider/cider-nrepl {:mvn/version "0.30.0"}
+                io.github.nextjournal/clerk
+                {:git/sha "d80187013d7b7b96db3d8b114b8d99f687170668"}
+                nrepl/nrepl {:mvn/version "1.0.0"}
                 refactor-nrepl/refactor-nrepl {:mvn/version "3.6.0"}}
    :main-opts  ["-m" "nrepl.cmdline"
                 "--middleware" "[refactor-nrepl.middleware/wrap-refactor,cider.nrepl/cider-middleware]"]}}}

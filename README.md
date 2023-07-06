@@ -92,45 +92,66 @@ NB: you can also download Meilisearch from **Homebrew** or **APT** or even run i
 
 #### Add documents <!-- omit in toc -->
 
-```java
-package com.meilisearch.sdk;
+```clojure
+(require '[com.meilisearch.sdk.core :as core])
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+(def documents
+  [{:id 1 :title "Carol" :genres ["Romance" "Drama"]}
+   {:id 2 :title "Wonder Woman" :genres ["Action" "Adventure"]}
+   {:id 3 :title "Life of Pi" :genres ["Drama" "Adventure"]}
+   {:id 4 :title "Mad Max: Fury Road" :genres ["Science Fiction" "Adventure"]}
+   {:id 5 :title "Moana" :genres ["Action" "Fantasy"]}
+   {:id 6 :title "Philadelphia" :genres ["Drama"]}])
 
-import java.util.ArrayList;
-
-class TestMeilisearch {
-  public static void main(String[] args) throws Exception {
-
-    JSONArray array = new JSONArray();
-    ArrayList items = new ArrayList() {{
-      add(new JSONObject().put("id", "1").put("title", "Carol").put("genres",new JSONArray("[\"Romance\",\"Drama\"]")));
-      add(new JSONObject().put("id", "2").put("title", "Wonder Woman").put("genres",new JSONArray("[\"Action\",\"Adventure\"]")));
-      add(new JSONObject().put("id", "3").put("title", "Life of Pi").put("genres",new JSONArray("[\"Adventure\",\"Drama\"]")));
-      add(new JSONObject().put("id", "4").put("title", "Mad Max: Fury Road").put("genres",new JSONArray("[\"Adventure\",\"Science Fiction\"]")));
-      add(new JSONObject().put("id", "5").put("title", "Moana").put("genres",new JSONArray("[\"Fantasy\",\"Action\"]")));
-      add(new JSONObject().put("id", "6").put("title", "Philadelphia").put("genres",new JSONArray("[\"Drama\"]")));
-    }};
-
-    array.put(items);
-    String documents = array.getJSONArray(0).toString();
-    Client client = new Client(new Config("http://localhost:7700", "masterKey"));
-
-    // An index is where the documents are stored.
-    Index index = client.index("movies");
-
-    // If the index 'movies' does not exist, Meilisearch creates it when you first add the documents.
-    index.addDocuments(documents); // => { "taskUid": 0 }
-  }
-}
+(def task-info "Store this to demonstrate the get-task function later"
+      ;; Client Configuration
+  (-> {:host "http://localhost:7700"
+       :api-key "aWildSalherApplicationAppears"}
+      ;; Create a new client
+      core/client!
+      ;; Get the index where we plan to store the documents
+      (core/index "movies")
+      ;; If the index 'movies' does not exist, Meilisearch creates it
+      ;; when you first add the documents.
+      (core/add-documents! documents)))
+;; #'user/task-info
+;; := {:task-uid 0,
+;;     :status "enqueued",
+;;     :index-uid "movies",
+;;     :type "documentAdditionOrUpdate",
+;;     ... }
 ```
 
-With the `taskUid`, you can check the status (`enqueued`, `processing`, `succeeded` or `failed`) of your documents addition using the [task endpoint](https://www.meilisearch.com/docs/reference/api/tasks).
+With the `task-uid`, you can check the status (`enqueued`, `processing`, `succeeded` or `failed`) of your documents ongoing addition using the [task endpoint](https://www.meilisearch.com/docs/reference/api/tasks).
+
+Continuing on from previous example, let's formalize things a bit and see the status of our task.
+```clojure
+;; Continuing on from previous example
+
+(def config "Configuration to connect to our Meilisearch Client"
+  {:host "http://localhost:7700"
+   :api-key "aWildSalherApplicationAppears"})
+
+(def client "A Meilisearch Client Instance for the rest of our examples"
+  (core/client! {:host "http://localhost:7700"
+                 :api-key "aWildSalherApplicationAppears"}))
+
+(core/get-task client (:task-uid task-info))
+;; :=
+;; {:task-uid ...,
+;;  :started-at #inst "2023-07-06T10:11:26.904-00:00",
+;;  :type "documentAdditionOrUpdate",
+;;  :duration "PT0.103231S",
+;;  :index-uid "movies",
+;;  :status "succeeded",
+;;  :error nil,
+;;  :finished-at #inst "2023-07-06T10:11:27.008-00:00",
+;;  :enqueued-at #inst "2023-07-06T10:11:26.904-00:00"}
+```
 
 #### Basic Search <!-- omit in toc -->
 
-A basic search can be performed by calling `index.search()` method, with a simple string query.
+A basic search can be performed by calling the `search` method, with a simple string query.
 
 ```java
 import com.meilisearch.sdk.model.SearchResult;

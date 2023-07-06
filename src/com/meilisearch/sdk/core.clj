@@ -1,8 +1,10 @@
 (ns com.meilisearch.sdk.core
-  (:require [com.meilisearch.sdk.impl :as impl])
+  (:require
+   [com.meilisearch.sdk.impl :as impl]
+   [jsonista.core :as json])
   (:import
    (com.meilisearch.sdk Client Index)
-   (com.meilisearch.sdk.model Searchable TaskInfo)))
+   (com.meilisearch.sdk.model TaskInfo)))
 
 ;;; # `Client.java` operations
 (defn client!
@@ -86,3 +88,23 @@
    (.getTask client task-uid)))
 
 ;;; # `Index.java` operations
+
+(defn add-documents!
+  "Adds/Replaces documents in the index Refer
+  https://www.meilisearch.com/docs/reference/api/documents#add-or-replace-documents
+
+  Params:
+  * index - Required, the Index object where we plan to add documents
+  * documents - Required. Note: If this is a string, it is assumed the
+    user is sending in JSON and no change is made. If not, it's
+    converted to JSON first and then the index operation is called.
+
+  Returns:
+  * TaskInfo Meilisearch API response
+  * throws MeilisearchException if an error occurs"
+  [^Index index documents]
+  (impl/->task-info
+   (.addDocuments index
+                  (if (instance? String documents)
+                    documents
+                    (json/write-value-as-string documents)))))
