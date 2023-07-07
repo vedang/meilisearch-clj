@@ -11,6 +11,18 @@
 
 (def client (core/client! config))
 
+(defn wait-for-task-to-complete
+  ([task-uid]
+   (wait-for-task-to-complete task-uid 5))
+  ([task-uid num-attempts]
+   (let [task (core/get-task client task-uid)]
+     (when (not= "succeeded" (:status task))
+       (if (pos? num-attempts)
+         (do (Thread/sleep 500)
+             (recur task-uid (dec num-attempts)))
+         (do (println "Exhausted attempts, something is wrong with our server")
+             (println task)))))))
+
 (t/deftest client!
   (t/is (instance? Client client)))
 
@@ -88,15 +100,7 @@
                   :index-uid (.getUid index)}))
           "We can add documents to the index")
 
-    ;; Wait for the task to complete
-    (loop [num-attempts 5]
-      (let [task (core/get-task client (:task-uid task))]
-        (when (not= "succeeded" (:status task))
-          (if (pos? num-attempts)
-            (do (Thread/sleep 500)
-                (recur (dec num-attempts)))
-            (do (println "Exhausted attempts, something is wrong with our server")
-                (println task))))))
+    (wait-for-task-to-complete (:task-uid task))
 
     (t/is (-> index
               (core/search "life")
@@ -127,3 +131,26 @@
                   :limit 20,
                   :estimated-total-hits 1}))
           "We can specify search parameters as a parameters map")))
+
+(t/deftest update-filterable-attributes-settings!
+  (let [_create-index (core/create-index! client "test_movies_1" "id")
+        index (core/index client "test_movies_1")
+        task (core/update-filterable-attributes-settings! index ["id" "genres"])]
+    (t/is (-> task
+              (select-keys [:type :status :index-uid])
+              (= {:type "settingsUpdate"
+                  :status "enqueued"
+                  :index-uid (.getUid index)}))
+          "We can set filterable attributes on an index.")
+
+    (wait-for-task-to-complete (:task-uid task))
+
+    (t/is (-> index
+              (core/search "wonder" {:filter ["id > 1 AND genres = Action"]})
+              (= {:hits '({:genres ["Action" "Adventure"], :id 2.0, :title "Wonder Woman"}),
+                  :facet-distribution nil,
+                  :processing-time-ms 0,
+                  :query "wonder",
+                  :offset 0,
+                  :limit 20,
+                  :estimated-total-hits 1})))))

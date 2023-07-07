@@ -109,3 +109,29 @@
                         :attributes-to-retrieve ["title" "id" "genres"]})
      :hits first keys set)
  := #{:_formatted :_matchesPosition :id :title :genres})
+
+;; ## Custom Search With Filters
+
+;; If you want to enable filtering, you must add your attributes to
+;; the `filterableAttributes` index setting.
+
+(rcf/tests
+ (-> index
+     (core/update-filterable-attributes-settings! ["id" "genres"])
+     (select-keys [:type :status :index-uid]))
+ :=  {:type "settingsUpdate"
+      :status "enqueued"
+      :index-uid (.getUid index)})
+
+;; You only need to perform this operation once.
+
+;; Note that Meilisearch will rebuild your index whenever you update
+;; `filterableAttributes`. Depending on the size of your dataset, this
+;; might take time. You can track the process using the [task
+;; status](https://www.meilisearch.com/docs/reference/api/tasks).
+
+(rcf/tests
+ (-> index
+     (core/search "wonder" {:filter ["id > 1 AND genres = Action"]})
+     :hits first)
+ := {:genres ["Action" "Adventure"], :id 2.0, :title "Wonder Woman"})

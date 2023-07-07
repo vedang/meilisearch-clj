@@ -183,17 +183,13 @@ All the supported options are described in the [search parameters](https://www.m
                :genres ["Adventure" "Drama"]},
   :_matchesPosition {:title [{:start 5.0, :length 2.0}]}}]
 ```
-### REST OF THIS DOCUMENT IS TBD IN CLOJURE
 #### Custom Search With Filters <!-- omit in toc -->
 
 If you want to enable filtering, you must add your attributes to the `filterableAttributes` index setting.
 
-```java
-index.updateFilterableAttributesSettings(new String[]
-{
-  "id",
-  "genres"
-});
+```clojure
+(core/update-filterable-attributes-settings! index ["id" "genres"])
+;; := {:type "settingsUpdate", :status "enqueued", :index-uid "movies" ... }
 ```
 
 You only need to perform this operation once.
@@ -202,29 +198,22 @@ Note that Meilisearch will rebuild your index whenever you update `filterableAtt
 
 Then, you can perform the search:
 
-```java
-index.search(
-  new SearchRequest("wonder")
-  .setFilter(new String[] {"id > 1 AND genres = Action"})
-);
+```clojure
+(core/search index "wonder" {:filter ["id > 1 AND genres = Action"]})
+;; := {:hits ... :query "wonder" ... }
 ```
 
-```json
-{
-  "hits": [
-    {
-      "id": 2,
-      "title": "Wonder Woman",
-      "genres": ["Action","Adventure"]
-    }
-  ],
-  "offset": 0,
-  "limit": 20,
-  "estimatedTotalHits": 1,
-  "processingTimeMs": 0,
-  "query": "wonder"
-}
+```edn
+{:hits '({:genres ["Action" "Adventure"], :id 2.0, :title "Wonder Woman"}),
+ :facet-distribution nil,
+ :processing-time-ms 0,
+ :query "wonder",
+ :offset 0,
+ :limit 20,
+ :estimated-total-hits 1}
 ```
+
+### REST OF THIS DOCUMENT IS TBD IN CLOJURE
 ## 🛠 Customization
 
 ### JSON <!-- omit in toc -->

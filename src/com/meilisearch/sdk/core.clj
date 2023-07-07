@@ -3,7 +3,7 @@
    [com.meilisearch.sdk.impl :as impl]
    [jsonista.core :as json])
   (:import
-   (clojure.lang IPersistentMap)
+   (clojure.lang IPersistentMap IPersistentVector)
    (com.meilisearch.sdk Client Index SearchRequest)
    (com.meilisearch.sdk.model TaskInfo)))
 
@@ -131,3 +131,67 @@
     (.search index
              ^SearchRequest (impl/search-request
                              (assoc parameters :query query))))))
+
+;; (defn get-searchable-attributes-settings
+;;   [^Index index])
+;; (defn update-searchable-attributes-settings
+;;   [^Index index])
+;; (defn reset-searchable-attributes-settings
+;;   [^Index index])
+
+;; (defn get-displayed-attributes-settings
+;;   [^Index index])
+;; (defn update-displayed-attributes-settings!
+;;   [^Index index])
+;; (defn reset-displayed-attributes-settings!
+;;   [^Index index])
+
+(defn get-filterable-attributes-settings
+  "Gets the filterable attributes of the index. Refer:
+  https://www.meilisearch.com/docs/reference/api/settings#get-filterable-attributes
+
+  Params:
+  * index - Required, the index whose attributes you want
+
+  Returns:
+  * filterable attributes of a given index as String
+  * throws MeilisearchException if an error occurs"
+  [^Index index]
+  (vec (.getFilterableAttributesSettings index)))
+
+(defn update-filterable-attributes-settings!
+  "Updates the filterable attributes of the index. This will re-index all
+  documents in the index. Refer
+  https://www.meilisearch.com/docs/reference/api/settings#update-filterable-attributes
+
+  Params:
+  * index - Required, the Index on which to execute this operation
+  * filterable-attributes - Required, an array of strings containing
+    the attributes that can be used as filters at query time.
+
+  Returns:
+  * task-info of the operation
+  * throws MeilisearchException if an error occurs"
+  [^Index index ^IPersistentVector filterable-attributes]
+  (impl/->task-info
+   (.updateFilterableAttributesSettings index (into-array String filterable-attributes))))
+
+(defn reset-filterable-attributes-settings!
+  "Resets the filterable attributes of the index. Refer:
+  https://www.meilisearch.com/docs/reference/api/settings#reset-filterable-attributes
+
+  Params:
+  index - Required, the Index on which to execute this operation
+
+  Returns:
+  * task-info of the operation
+  * throws MeilisearchException if an error occurs"
+  [^Index index]
+  (impl/->task-info (.resetFilterableAttributesSettings index)))
+
+;; (defn get-sortable-attributes-settings
+;;   [^Index index])
+;; (defn update-sortable-attributes-settings!
+;;   [^Index index])
+;; (defn reset-sortable-attributes-settings!
+;;   [^Index index])
