@@ -3,7 +3,8 @@
    [com.meilisearch.sdk.impl :as impl]
    [jsonista.core :as json])
   (:import
-   (com.meilisearch.sdk Client Index)
+   (clojure.lang IPersistentMap)
+   (com.meilisearch.sdk Client Index SearchRequest)
    (com.meilisearch.sdk.model TaskInfo)))
 
 ;;; # `Client.java` operations
@@ -18,7 +19,7 @@
     Eg: \"IAMAMASTERKEY\"
 
   Returns: a `Client` instance that can be used for Meilisearch operations."
-  [^clojure.lang.IPersistentMap configuration]
+  [^IPersistentMap configuration]
   (Client. (impl/config configuration)))
 
 (defn create-index!
@@ -116,9 +117,17 @@
   Params:
   * index - Required, the Index object against which to run the search
   * query - Required, Query string
+  * parameters - Optional, search parameters to change search behaviour, as
+    described at
+    https://www.meilisearch.com/docs/reference/api/search#search-parameters
 
   Returns:
   * Meilisearch API response
   * throws MeilisearchException if an error occurs"
-  [^Index index ^String query]
-  (impl/->search-result (.search index query)))
+  ([^Index index ^String query]
+   (impl/->search-result (.search index query)))
+  ([^Index index ^String query ^IPersistentMap parameters]
+   (impl/->search-result
+    (.search index
+             ^SearchRequest (impl/search-request
+                             (assoc parameters :query query))))))

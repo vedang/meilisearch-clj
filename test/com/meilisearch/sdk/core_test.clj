@@ -109,4 +109,21 @@
                   :offset 0,
                   :limit 20,
                   :estimated-total-hits 1}))
-          "Once the documents are added, we can search for them")))
+          "Once the documents are added, we can search for them")
+
+    (t/is (-> index
+              (core/search "life"
+                           {:show-matches-position true
+                            :attributes-to-highlight ["title"]
+                            :attributes-to-retrieve ["title" "id"]})
+              (= {:hits '({:_formatted {"id" "3", "title" "<em>Life</em> of Pi"},
+                           :_matchesPosition {"title" [{"start" 0.0, "length" 4.0}]},
+                           :id 3.0,
+                           :title "Life of Pi"}),
+                  :facet-distribution nil,
+                  :processing-time-ms 0,
+                  :query "life",
+                  :offset 0,
+                  :limit 20,
+                  :estimated-total-hits 1}))
+          "We can specify search parameters as a parameters map")))

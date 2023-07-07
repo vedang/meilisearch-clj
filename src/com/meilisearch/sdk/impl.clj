@@ -2,8 +2,9 @@
   (:require
    [clojure.walk :as walk])
   (:import
-   (com.meilisearch.sdk Config)
-   (com.meilisearch.sdk.model SearchResult Task TaskInfo)))
+   (clojure.lang IPersistentMap)
+   (com.meilisearch.sdk Config SearchRequest)
+   (com.meilisearch.sdk.model MatchingStrategy SearchResult Task TaskInfo)))
 
 ;;; # Functions that operate on a `Config` object
 
@@ -18,7 +19,7 @@
   * :api-key - optional, the key used to authorize requests to Meilisearch
     Eg: \"IAMAMASTERKEY\"
   "
-  [configuration]
+  [^IPersistentMap configuration]
   (Config. (:host configuration) (:api-key configuration)))
 
 ;;; # Functions that operate on a `Task`, `TaskInfo` object
@@ -78,3 +79,39 @@
    :offset (.getOffset result)
    :limit (.getLimit result)
    :estimated-total-hits (.getEstimatedTotalHits result)})
+
+(defn search-request
+  "Takes an `parameters` search-request parameters map and
+  creates an instance of a `SearchRequest` object.
+
+  The search parameters change search behaviour, and their
+  types and default values are described here:
+  https://www.meilisearch.com/docs/reference/api/search#search-parameters
+
+  We accept the above options in kebab-case."
+  [^IPersistentMap parameters]
+  (let [search-request (SearchRequest. (or (:query parameters) ""))]
+    (cond-> search-request
+      (:offset parameters) (.setOffset (int (:offset parameters)))
+      (:limit parameters) (.setLimit (int (:limit parameters)))
+      (:attributes-to-retrieve parameters) (.setAttributesToRetrieve
+                                      (into-array String (:attributes-to-retrieve parameters)))
+      (:attributes-to-crop parameters) (.setAttributesToCrop
+                                  (into-array String (:attributes-to-crop parameters)))
+      (:crop-length parameters) (.setCropLength (int (:crop-length parameters)))
+      (:crop-marker parameters) (.setCropMarker (:crop-marker parameters))
+      (:highlight-pre-tag parameters) (.setHighlightPreTag (:highlight-pre-tag parameters))
+      (:highlight-post-tag parameters) (.setHighlightPostTag (:highlight-post-tag parameters))
+      (:matching-strategy parameters) (.setMatchingStrategy
+                                 (case (:matching-strategy parameters)
+                                   "all" MatchingStrategy/ALL
+                                   "last" MatchingStrategy/LAST))
+      (:attributes-to-highlight parameters) (.setAttributesToHighlight
+                                       (into-array String (:attributes-to-highlight parameters)))
+      (:filter parameters) (.setFilter (into-array String (:filter parameters)))
+      (:show-matches-position parameters) (.setShowMatchesPosition
+                                     (boolean (:show-matches-position parameters)))
+      (:facets parameters) (.setFacets (into-array String (:facets parameters)))
+      (:sort parameters) (.setSort (into-array String (:sort parameters)))
+      (:page parameters) (.setPage (int (:page parameters)))
+      (:hits-per-page parameters) (.setHitsPerPage (int (:hits-per-page parameters))))))

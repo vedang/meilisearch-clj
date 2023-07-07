@@ -64,7 +64,7 @@ Currently unavailable, as explained above
 
 ### Deps.edn
 ```clojure
-io.github.vedang/meilisearch-clj {:git/sha "f9bafc4804b3be81367ffd12ab3b7d1ec7d79bf7"}
+io.github.vedang/meilisearch-clj {:git/sha "<PUT-LATEST-SHA-HERE>"}
 ```
 
 ### Run Meilisearch <!-- omit in toc -->
@@ -160,45 +160,30 @@ A basic search can be performed by calling the `search` method, with a simple st
 ;;     :processing-time-ms ... }
 ```
 
-REST OF THIS DOC IS TBD IN Clojure
 #### Custom Search <!-- omit in toc -->
 
 If you want a custom search, the easiest way is to create a `SearchRequest` object, and set the parameters that you need.<br>
 All the supported options are described in the [search parameters](https://www.meilisearch.com/docs/reference/api/search#search-parameters) section of the documentation.
 
-```java
-import com.meilisearch.sdk.SearchRequest;
-
-// ...
-
-SearchResult results = index.search(
-  new SearchRequest("of")
-  .setShowMatchesPosition(true)
-  .setAttributesToHighlight(new String[]{"title"})
-);
-System.out.println(results.getHits());
+```clojure
+;; Continuing from previous code blocks
+(core/search "of" {:show-matches-position true
+                   :attributes-to-highlight ["title"]
+                   :attributes-to-retrieve ["title" "id" "genres"]})
 ```
 
 - Output:
 
-```json
-[{
-  "id":3,
-  "title":"Life of Pi",
-  "genres":["Adventure","Drama"],
-  "_formatted":{
-    "id":3,
-    "title":"Life <em>of</em> Pi",
-    "genres":["Adventure","Drama"]
-  },
-  "_matchesPosition":{
-    "title":[{
-      "start":5.0,
-      "length":2.0
-    }]
-  }
-}]
+```edn
+[{:id 3,
+  :title "Life of Pi",
+  :genres ["Adventure" "Drama"],
+  :_formatted {:id 3,
+               :title "Life <em>of</em> Pi",
+               :genres ["Adventure" "Drama"]},
+  :_matchesPosition {:title [{:start 5.0, :length 2.0}]}}]
 ```
+### REST OF THIS DOCUMENT IS TBD IN CLOJURE
 #### Custom Search With Filters <!-- omit in toc -->
 
 If you want to enable filtering, you must add your attributes to the `filterableAttributes` index setting.

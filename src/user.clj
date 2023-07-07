@@ -93,3 +93,19 @@
     :offset 0,
     :limit 20,
     :estimated-total-hits 1})
+
+;; ## Custom Search
+
+;; If you want a custom search, the easiest way is to create a
+;; `SearchRequest` object, and set the parameters that you need. All
+;; the supported options are described in the [search
+;; parameters](https://www.meilisearch.com/docs/reference/api/search#search-parameters)
+;; section of the documentation.
+
+(rcf/tests
+ (-> index
+     (core/search "of" {:show-matches-position true
+                        :attributes-to-highlight ["title"]
+                        :attributes-to-retrieve ["title" "id" "genres"]})
+     :hits first keys set)
+ := #{:_formatted :_matchesPosition :id :title :genres})
