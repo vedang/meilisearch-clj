@@ -23,4 +23,9 @@
                 nrepl/nrepl {:mvn/version "1.0.0"}
                 refactor-nrepl/refactor-nrepl {:mvn/version "3.6.0"}}
    :main-opts  ["-m" "nrepl.cmdline"
-                "--middleware" "[refactor-nrepl.middleware/wrap-refactor,cider.nrepl/cider-middleware]"]}}}
+                "--middleware" "[refactor-nrepl.middleware/wrap-refactor,cider.nrepl/cider-middleware]"]}
+
+  :nextjournal/clerk
+  {:exec-fn nextjournal.clerk/build!
+   :exec-args {:paths ["user.clj"]}
+   :extra-deps {com.hyperfiddle/rcf {:mvn/version "20220926-202227"}}}}}

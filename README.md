@@ -213,49 +213,9 @@ Then, you can perform the search:
  :estimated-total-hits 1}
 ```
 
-### REST OF THIS DOCUMENT IS TBD IN CLOJURE
-## 🛠 Customization
-
-### JSON <!-- omit in toc -->
-
-#### Default JSON `GsonJsonHandler` <!-- omit in toc -->
-
-The default JSON library is `Gson`. You can however use another library with the `JsonHandler` Class.
-
-*Notes*: We strongly recommend using the `Gson` library.
-
-#### Using `JacksonJsonHandler` <!-- omit in toc -->
-
-Initialize your `Config` and assign it a new `JacksonJsonHandler` object as `JsonHandler`.
-Set up your `Client` with it.
-
-```java
-import com.meilisearch.sdk.json.JacksonJsonHandler;
-
-Config config = new Config("http://localhost:7700", "masterKey", new JacksonJsonHandler());
-Client client = new Client(config);
-```
-
-#### Use a Custom `JsonHandler` <!-- omit in toc -->
-
-To create your own JSON handler, you must conform to the `JsonHandler` interface by implementing its two methods.
-
-```java
-    String encode(Object o) throws Exception;
-
-    <T> T decode(Object o, Class<?> targetClass, Class<?>... parameters) throws Exception;
-```
-
- Then create your client by initializing your `Config` with your new handler.
-
-```java
-Config config = new Config("http://localhost:7700", "masterKey", new myJsonHandler());
-Client client = new Client(config);
-```
-
 ## 🤖 Compatibility with Meilisearch
 
-This package guarantees compatibility with [version v1.x of Meilisearch](https://github.com/meilisearch/meilisearch/releases/latest), but some features may not be present. Please check the [issues](https://github.com/meilisearch/meilisearch-java/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22+label%3Aenhancement) for more info.
+This package guarantees compatibility with [version v1.x of Meilisearch](https://github.com/meilisearch/meilisearch/releases/latest), but some features may not be present. Please check the [issues](https://github.com/vedang/meilisearch-clj/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22+label%3Aenhancement) for more info.
 
 ## 💡 Learn more
 
