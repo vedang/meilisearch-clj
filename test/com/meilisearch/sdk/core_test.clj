@@ -1,7 +1,8 @@
 (ns com.meilisearch.sdk.core-test
   (:require
    [clojure.test :as t]
-   [com.meilisearch.sdk.core :as core])
+   [com.meilisearch.sdk.core :as core]
+   [com.meilisearch.sdk.test-helpers :refer [wait-for-task-to-complete]])
   (:import
    (com.meilisearch.sdk Client)))
 
@@ -10,18 +11,6 @@
    :api-key "aWildSalherApplicationAppears"})
 
 (def client (core/client! config))
-
-(defn wait-for-task-to-complete
-  ([task-uid]
-   (wait-for-task-to-complete task-uid 5))
-  ([task-uid num-attempts]
-   (let [task (core/get-task client task-uid)]
-     (when (not= "succeeded" (:status task))
-       (if (pos? num-attempts)
-         (do (Thread/sleep 500)
-             (recur task-uid (dec num-attempts)))
-         (do (println "Exhausted attempts, something is wrong with our server")
-             (println task)))))))
 
 (t/deftest client!
   (t/is (instance? Client client)))
@@ -100,7 +89,7 @@
                   :index-uid (.getUid index)}))
           "We can add documents to the index")
 
-    (wait-for-task-to-complete (:task-uid task))
+    (wait-for-task-to-complete client task)
 
     (t/is (-> index
               (core/search "life")
@@ -143,14 +132,15 @@
                   :index-uid (.getUid index)}))
           "We can set filterable attributes on an index.")
 
-    (wait-for-task-to-complete (:task-uid task))
+    (wait-for-task-to-complete client task)
 
-    (t/is (-> index
-              (core/search "wonder" {:filter ["id > 1 AND genres = Action"]})
-              (= {:hits '({:genres ["Action" "Adventure"], :id 2.0, :title "Wonder Woman"}),
-                  :facet-distribution nil,
-                  :processing-time-ms 0,
-                  :query "wonder",
-                  :offset 0,
-                  :limit 20,
-                  :estimated-total-hits 1})))))
+    (t/is (= {:hits '({:genres ["Action" "Adventure"], :id 2.0, :title "Wonder Woman"}),
+              :facet-distribution nil,
+              :processing-time-ms 0,
+              :query "wonder",
+              :offset 0,
+              :limit 20,
+              :estimated-total-hits 1}
+             (core/search index
+                          "wonder"
+                          {:filter ["id > 1 AND genres = Action"]})))))

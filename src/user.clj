@@ -2,6 +2,7 @@
   #:nextjournal.clerk{:visibility {:code :show, :result :show}, :toc true}
   (:require
    [com.meilisearch.sdk.core :as core]
+   [com.meilisearch.sdk.test-helpers :refer [wait-for-task-to-complete]]
    [hyperfiddle.rcf :as rcf]))
 
 (rcf/enable!)
@@ -67,15 +68,7 @@
 ;; First, let's make sure our documents have been added, and wait for
 ;; the task to succeed.
 
-(rcf/tests
- (loop [num-attempts 5]
-   (let [task (core/get-task client (:task-uid task-info))]
-     (when (not= "succeeded" (:status task))
-       (if (pos? num-attempts)
-         (do (Thread/sleep 500)
-             (recur (dec num-attempts)))
-         (do (println "Exhausted attempts, something is wrong with our server")
-             (println task)))))))
+(rcf/tests (wait-for-task-to-complete client task-info))
 
 ;; Now we are ready to search
 
@@ -83,15 +76,13 @@
   (core/index client "movies"))
 
 (rcf/tests
- (core/search index "life")
+ (-> index
+     (core/search "life")
+     (select-keys [:hits :query :estimated-total-hits]))
  := {:hits '({:genres ["Drama" "Adventure"],
              :id 3.0,
              :title "Life of Pi"}),
-    :facet-distribution nil,
-    :processing-time-ms 0,
     :query "life",
-    :offset 0,
-    :limit 20,
     :estimated-total-hits 1})
 
 ;; ## Custom Search
@@ -114,14 +105,17 @@
 
 ;; If you want to enable filtering, you must add your attributes to
 ;; the `filterableAttributes` index setting.
-
+#_{:clj-kondo/ignore [:unused-value]}
 (rcf/tests
- (-> index
-     (core/update-filterable-attributes-settings! ["id" "genres"])
-     (select-keys [:type :status :index-uid]))
- :=  {:type "settingsUpdate"
-      :status "enqueued"
-      :index-uid (.getUid index)})
+ (let [task-info (-> index
+                     (core/update-filterable-attributes-settings! ["id" "genres"]))]
+   (wait-for-task-to-complete client task-info)
+   (-> client
+       (core/get-task (:task-uid task-info))
+       (select-keys [:type :status :index-uid]))
+   :=  {:type "settingsUpdate"
+        :status "succeeded"
+        :index-uid (.getUid index)}))
 
 ;; You only need to perform this operation once.
 
